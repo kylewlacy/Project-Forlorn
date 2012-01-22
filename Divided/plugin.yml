@@ -8,6 +8,42 @@ commands:
   hello:
     description: Used for debugging
     usage: /hello
-  setspawn:
-    description: Sets spawn point for debugging
-    usage: /setspawn <X> <Z>
+  setindex:
+    description: Sets a player's index for spawning
+    usage: /setindex <player> <index>
+  removeindex:
+    description: Removes a player's index
+    usage: /removeindex <player>
+  resetplayers:
+    description: Deletes all player.dat files; used for development
+    usage: /resetplayers
+permissions:
+  divided.*:
+    description: Gives to all Divided commands
+    default: false
+    children:
+      divided.changeindex: true
+  divided.changeindex:
+    description: Allows you to change or remove indicies for players
+    default: false
+    children:
+      divided.setindex: true
+      divided.removeindex: true
+  divided.debug:
+    description: Commands used for development and debugging
+    default: true
+    children:
+      divided.hello: true
+      divided.resetplayers: true
+  divided.hello:
+    description: For debugging purposes
+    default: true
+  divided.setindex:
+    description: Sets a player index to the one specified
+    default: false
+  divided.removeindex:
+    description: Removes a players index
+    default: false
+  divided.resetplayers:
+    description: Deletes all of the player data files for use in development and debugging
+    default: false
