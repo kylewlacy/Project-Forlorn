@@ -15,45 +15,31 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class Divided extends JavaPlugin {
 	public static PluginDescriptionFile pdf;
-	public static FileConfiguration config;
-	public static File configFile;
-	
 	public static final Logger logger = Logger.getLogger("Minecraft");
 	
-	@Override
 	public void onEnable() {
 		pdf = getDescription();
-		config = getConfig();
 		
-		if(!config.contains("general.spawnDistance")) {
-			config.set("general.spawnDistance", 100);
+		if(!getConfig().contains("general.spawnDistance")) {
+			getConfig().set("general.spawnDistance", 100);
 		}
 		
-		if(!config.contains("general.worldName")) {
-			config.set("general.worldName", "world");
+		if(!getConfig().contains("general.worldName")) {
+			getConfig().set("general.worldName", "world");
 		}
 		
-		if(!config.contains("maxIndex")) {
-			config.set("maxIndex", 0);
+		if(!getConfig().contains("players")) {
+			getConfig().createSection("players");
 		}
 		
 		saveConfig();
 		
 		PluginManager pm = getServer().getPluginManager();
-		pm.registerEvents(new PlayerJoinListener(), this);
-		pm.registerEvents(new PlayerRespawnListener(), this);
-		pm.registerEvents(new PlayerChatListener(), this);
-		
-		getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
-			public void run() {
-				logger.info("Saving config file");
-			}
-		}, 600L, 1200L);
-		
-		//this.logger.info(this.pdf.getName() + " is now enabled.");
+		pm.registerEvents(new PlayerJoinListener(this), this);
+		pm.registerEvents(new PlayerRespawnListener(this), this);
+		pm.registerEvents(new PlayerChatListener(this), this);
 	}
 	
-	@Override
 	public void onDisable() {
 		saveConfig();
 	}
@@ -78,28 +64,33 @@ public class Divided extends JavaPlugin {
 		//Console\Admin Commands
 		if(hasPermission) {
 			if(command.getName().equals("setindex")) {
-				config.set("players." + args[0], args[1]);
-				Location spawn = GetPlayerSpawn.locationFromIndex(getServer().getWorld(Divided.config.getString("general.worldName")), Integer.parseInt(args[1]));
+				getConfig().set("players." + args[0].toLowerCase(), Integer.parseInt(args[1]));
+				saveConfig();
+				Location spawn = GetPlayerSpawn.spawnLocation(getServer().getPlayer(args[0]), this);
+				//Location spawn = GetPlayerSpawn.locationFromIndex(getServer().getWorld(Divided.config.getString("general.worldName")), Integer.parseInt(args[1]));
 				logger.info(args[0] + "'s spawn is now (" + spawn.getX() + ", " + spawn.getY() + ", " + spawn.getZ() + ")");
 				return true;
 			}
 			
 			else if(command.getName().equals("removeindex")) {
-				config.set("players." + args[0], null);
+				getConfig().set("players." + args[0].toLowerCase(), null);
 				logger.info(args[0] + "'s spawn has been removed");
+				saveConfig();
 				return true;
 			}
 			
 			else if(command.getName().equals("resetplayers")) {
 				boolean deleted = true;
-				File[] players = (new File(Divided.config.getString("general.worldName") + File.separator + "players")).listFiles();
+				File[] players = (new File(getConfig().getString("general.worldName") + File.separator + "players")).listFiles();
 				
 				for (File player: players) {
-					config.set("players." + player.getName().substring(0, player.getName().lastIndexOf(".")), null);
-					config.set("maxIndex", 0);
 					if(!player.delete()) {
 						deleted = false;
 					}
+				}
+				
+				for (String player : getConfig().getConfigurationSection("players").getKeys(false)) {
+					getConfig().set("players." + player, null);
 				}
 				
 				if(deleted) {
@@ -107,7 +98,7 @@ public class Divided extends JavaPlugin {
 				}
 				
 				else {
-					logger.warning("Unable to delete all player.dat files!");
+					logger.warning("Unable to reset player data!");
 				}
 				
 				saveConfig();

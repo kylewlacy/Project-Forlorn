@@ -19,7 +19,7 @@ commands:
     usage: /resetplayers
 permissions:
   divided.*:
-    description: Gives to all Divided commands
+    description: Gives access to all Divided commands
     default: false
     children:
       divided.changeindex: true

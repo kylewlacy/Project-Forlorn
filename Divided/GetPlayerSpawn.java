@@ -1,47 +1,45 @@
 package com.k25125.Divided;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.logging.Logger;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class GetPlayerSpawn {	
-	public static Location spawnLocation(Player player) {
-		int index;
-		if(!Divided.config.contains("players." + player.getName())) {
-			//TODO: Calculate this programmatically, rather than relying on a property
-			index = Divided.config.getInt("maxIndex");
-			Divided.config.set("players." + player.getName(), index);
-			Divided.logger.info(player.getName() + "'s index is " + index);
-			Divided.config.set("maxIndex", index+1);
+	public static Location spawnLocation(Player player, Divided instance) {
+		String name = player.getName().toLowerCase();
+		if(!instance.getConfig().contains("players." + name)) {
+			int index = getMaxIndex(instance.getConfig().getConfigurationSection("players")) + 1;
+			instance.getConfig().set("players." + name, index);
+			instance.logger.info(player.getName() + "'s index has been set to " + index);
+			instance.saveConfig();
 		}
 		
-		else {
-			index = Divided.config.getInt("players." + player.getName());
-		}
-		
-		return locationFromIndex(player.getServer().getWorld(Divided.config.getString("general.worldName")), index);
+		return locationFromIndex(player.getServer().getWorld(instance.getConfig().getString("general.worldName")), instance.getConfig().getInt("players." + name), instance.getConfig().getInt("general.spawnDistance"));
 	}
 	
-	private static Location autoLocation(World world, int x, int z) {		
+	private static Location autoLocation(World world, double x, double z) {		
 		for(int i = 127; i > 0; i--) {
-			if(!(new Location(world, (double)x, (double)i, (double)z).getBlock().isEmpty())) {
-				return new Location(world, (double)x, (double)i + 1.5, (double)z);
+			if(!(new Location(world, x, i, z).getBlock().isEmpty())) {
+				return new Location(world, x, i + 1.5, z);
 			}
 		}
 		
 		return null;
 	}
 	
-	public static Location locationFromIndex(World world, int spawnIndex) {
+	public static Location locationFromIndex(World world, int spawnIndex, int scale) {
 		Location spawn;
 		
 		boolean obstructed = false;
 		
 		for(int i = 0; i < 1000; i++) {
-			spawn = autoLocation(world, (spawnIndex+i)*100, (spawnIndex+i)*100);
+			spawn = getIndicies(world, new Location[] {autoLocation(world, 0f, 0f)}, scale, spawnIndex+i+1)[spawnIndex+i];
 			if(spawn != null) {
 				if(obstructed) {
 					if(i == 0) {
@@ -67,5 +65,49 @@ public class GetPlayerSpawn {
 		}
 		
 		return new Location(world, 0f, 128f, 0f);
+	}
+	
+	public static Location[] getIndicies(World world, Location[] collection, int scale, int max) {
+		if(collection.length >= max) {
+			Divided.logger.info("Finished iterating!");
+			return collection;
+		}
+		
+		Location origin = collection[collection.length - 1];
+		List<Location> next = new LinkedList<Location>(Arrays.asList(collection));
+		
+		Location[] neighbors = {
+			autoLocation(world, origin.getX(), origin.getZ() + (2f*scale)),
+			autoLocation(world, origin.getX() + (2f*scale), origin.getZ() + scale),
+			autoLocation(world, origin.getX() + (2f*scale), origin.getZ() - scale),
+			autoLocation(world, origin.getX(), origin.getZ() - (2f*scale)),
+			autoLocation(world, origin.getX() - (2f*scale), origin.getZ() - scale),
+			autoLocation(world, origin.getX() - (2f*scale), origin.getZ() + scale)
+		};
+		
+		for(int i = 0; i < neighbors.length; i++) {
+			int iBack = (i - 1 < 0) ? neighbors.length - 1 : i - 1;
+			if(next.contains(neighbors[i]) && !next.contains(neighbors[iBack])) {
+				Divided.logger.info("Iterating to (" + neighbors[iBack].getX() + ", " + neighbors[iBack].getZ() + ")");
+				next.add(neighbors[iBack]);
+				return getIndicies(world, next.toArray(new Location[0]), scale, max);
+			}
+		}
+		
+		Divided.logger.info("Defaulting to forward");
+		next.add(neighbors[0]);
+		return getIndicies(world, next.toArray(new Location[0]), scale, max);
+	}
+	
+	public static int getMaxIndex(ConfigurationSection section) {
+		int max = -1;
+		for(String player : section.getKeys(false)) {
+			if(section.getInt(player) > max) {
+				max = section.getInt(player);
+			}
+		}
+		
+		Divided.logger.info("Max index is " + max);
+		return max;
 	}
 }

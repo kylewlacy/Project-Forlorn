@@ -9,8 +9,13 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 
 public class PlayerChatListener implements Listener {
-	@EventHandler(event = PlayerChatEvent.class, priority = EventPriority.NORMAL)
+	public Divided plugin;
 	
+	public PlayerChatListener(Divided instance) {
+		plugin = instance;
+	}
+	
+	@EventHandler(event = PlayerChatEvent.class, priority = EventPriority.NORMAL)
 	public void onPlayerChat(PlayerChatEvent chat) {
 		String message = chat.getMessage();
 		
