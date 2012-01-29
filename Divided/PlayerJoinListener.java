@@ -1,4 +1,4 @@
-package com.k25125.Divided;
+package com.k25125.Forlorn;
 
 import java.io.File;
 import org.bukkit.Location;
@@ -17,7 +17,7 @@ public class PlayerJoinListener implements Listener {
 		plugin = instance;
 	}
 	
-	@EventHandler(event = PlayerJoinEvent.class, priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerJoin(PlayerJoinEvent join) {
 		Location spawn = GetPlayerSpawn.spawnLocation(join.getPlayer(), plugin);
 		

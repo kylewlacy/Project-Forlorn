@@ -1,4 +1,4 @@
-package com.k25125.Divided;
+package com.k25125.Forlorn;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ public class PlayerChatListener implements Listener {
 		plugin = instance;
 	}
 	
-	@EventHandler(event = PlayerChatEvent.class, priority = EventPriority.NORMAL)
+	@EventHandler
 	public void onPlayerChat(PlayerChatEvent chat) {
 		String message = chat.getMessage();
 		

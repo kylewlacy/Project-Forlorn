@@ -1,4 +1,4 @@
-package com.k25125.Divided;
+package com.k25125.Forlorn;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,27 +20,20 @@ public class GetPlayerSpawn {
 			instance.saveConfig();
 		}
 		
-		return locationFromIndex(player.getServer().getWorld(instance.getConfig().getString("general.worldName")), instance.getConfig().getInt("players." + name), instance.getConfig().getInt("general.spawnDistance"));
+		return locationFromIndex(player, instance, instance.getConfig().getInt("players." + name), instance.getConfig().getInt("general.spawnDistance"));
 	}
 	
-	private static Location autoLocation(World world, double x, double z) {		
-		for(int i = 127; i > 0; i--) {
-			if(!(new Location(world, x, i, z).getBlock().isEmpty())) {
-				return new Location(world, x, i + 1.5, z);
-			}
-		}
-		
-		return null;
-	}
-	
-	public static Location locationFromIndex(World world, int spawnIndex, int scale) {
-		Location spawn;
+	public static Location locationFromIndex(Player player, Divided instance, int spawnIndex, int scale) {
+		World world = player.getServer().getWorld(instance.getConfig().getString("general.worldName"));
+		myLocation spawn;
+		myLocation[] set = new myLocation[]{new myLocation(world, 0f, 0f)};
 		
 		boolean obstructed = false;
 		
 		for(int i = 0; i < 1000; i++) {
-			spawn = getIndicies(world, new Location[] {autoLocation(world, 0f, 0f)}, scale, spawnIndex+i+1)[spawnIndex+i];
-			if(spawn != null) {
+			set = getIndicies(world, set, scale, spawnIndex+i+1);
+			spawn = set[set.length-1];
+			if(spawn.isValid()) {
 				if(obstructed) {
 					if(i == 0) {
 						Divided.logger.info("Spawn index " + spawnIndex + " is obstructed");
@@ -49,9 +42,12 @@ public class GetPlayerSpawn {
 					else {
 						Divided.logger.info("Spawn indicies " + spawnIndex + "-" + (spawnIndex+i) + " are obstructed");
 					}
+					
+					instance.getConfig().set("players." + player.getName().toLowerCase(), spawnIndex+i+1);
+					instance.saveConfig();
 				}
 				
-				return spawn;
+				return (Location)spawn;
 			}
 			
 			obstructed = true;
@@ -59,30 +55,30 @@ public class GetPlayerSpawn {
 		
 		Divided.logger.warning("All possible indicies within range are obstructed");
 		
-		spawn = autoLocation(world, 0, 0);
-		if(spawn != null) {
-			return spawn;
+		spawn = new myLocation(world, 0, 0);
+		if(spawn.isValid()) {
+			return (Location)spawn;
 		}
 		
 		return new Location(world, 0f, 128f, 0f);
 	}
 	
-	public static Location[] getIndicies(World world, Location[] collection, int scale, int max) {
+	public static myLocation[] getIndicies(World world, myLocation[] collection, int scale, int max) {
 		if(collection.length >= max) {
 			Divided.logger.info("Finished iterating!");
 			return collection;
 		}
 		
-		Location origin = collection[collection.length - 1];
-		List<Location> next = new LinkedList<Location>(Arrays.asList(collection));
+		myLocation origin = collection[collection.length - 1];
+		List<myLocation> next = new LinkedList<myLocation>(Arrays.asList(collection));
 		
-		Location[] neighbors = {
-			autoLocation(world, origin.getX(), origin.getZ() + (2f*scale)),
-			autoLocation(world, origin.getX() + (2f*scale), origin.getZ() + scale),
-			autoLocation(world, origin.getX() + (2f*scale), origin.getZ() - scale),
-			autoLocation(world, origin.getX(), origin.getZ() - (2f*scale)),
-			autoLocation(world, origin.getX() - (2f*scale), origin.getZ() - scale),
-			autoLocation(world, origin.getX() - (2f*scale), origin.getZ() + scale)
+		myLocation[] neighbors = {
+			new myLocation(world, origin.getX(), origin.getZ() + (2f*scale)),
+			new myLocation(world, origin.getX() + (2f*scale), origin.getZ() + scale),
+			new myLocation(world, origin.getX() + (2f*scale), origin.getZ() - scale),
+			new myLocation(world, origin.getX(), origin.getZ() - (2f*scale)),
+			new myLocation(world, origin.getX() - (2f*scale), origin.getZ() - scale),
+			new myLocation(world, origin.getX() - (2f*scale), origin.getZ() + scale)
 		};
 		
 		for(int i = 0; i < neighbors.length; i++) {
@@ -90,20 +86,20 @@ public class GetPlayerSpawn {
 			if(next.contains(neighbors[i]) && !next.contains(neighbors[iBack])) {
 				Divided.logger.info("Iterating to (" + neighbors[iBack].getX() + ", " + neighbors[iBack].getZ() + ")");
 				next.add(neighbors[iBack]);
-				return getIndicies(world, next.toArray(new Location[0]), scale, max);
+				return getIndicies(world, next.toArray(new myLocation[0]), scale, max);
 			}
 		}
 		
 		Divided.logger.info("Defaulting to forward");
 		next.add(neighbors[0]);
-		return getIndicies(world, next.toArray(new Location[0]), scale, max);
+		return getIndicies(world, next.toArray(new myLocation[0]), scale, max);
 	}
 	
 	public static int getMaxIndex(ConfigurationSection section) {
 		int max = -1;
 		for(String player : section.getKeys(false)) {
 			if(section.getInt(player) > max) {
-				max = section.getInt(player);
+				max = section.getInt(player) + 1;
 			}
 		}
 		

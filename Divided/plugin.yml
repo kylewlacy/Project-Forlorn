@@ -3,7 +3,7 @@ version: 0.0.1
 description: Whenever a new player joins the world, a new spawnable area is defined so every new player spawns in a desolate area
 author: K25125
 load: POSTWORLD
-main: com.k25125.Divided.Divided
+main: com.k25125.Forlorn.Divided
 commands:
   hello:
     description: Used for debugging

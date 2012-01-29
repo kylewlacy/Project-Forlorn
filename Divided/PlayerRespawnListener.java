@@ -1,4 +1,4 @@
-package com.k25125.Divided;
+ package com.k25125.Forlorn;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -14,7 +14,7 @@ public class PlayerRespawnListener implements Listener {
 		plugin = instance;
 	}
 	
-	@EventHandler(event = PlayerRespawnEvent.class, priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerRespawn(PlayerRespawnEvent respawn) {
 		if(!respawn.isBedSpawn()) {
 			respawn.setRespawnLocation(GetPlayerSpawn.spawnLocation(respawn.getPlayer(), plugin));
