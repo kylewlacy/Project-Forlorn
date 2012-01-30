@@ -1,0 +1,22 @@
+MINECRAFT FORUM TOPIC: http://www.minecraftforum.net/topic/982430-idea-the-forlorn-project/
+
+Welcome to the Project Forlorn open-source plugin repo thing. I feel obligated to post a crappy ASCII banner as if this were some old IBM machine, but meh. I also feel obligated to post a feature list or something. I don't really know how these README files in repos are supposed to work; I never actually read them. So here is a crappy ASCII checklist of features instead (which will probably be outdated immediately):
+
+-Players spawn in their own area [Divided][Done]
+-Players can only chat with other nearby players [Divided]
+-X-ray hacks yield only reveal stone instead of ore or hidden chests [HaxBGone]
+-Beds are actually useful in SMP [Naps]
+
+I'll probably include Readme files for each plugin at some point, so open the folder for each plugin and see if there's a Readme file there. That'll probably be infinitely more useful.
+
+I've also included a mess of shell scripts. Run setup.sh in the root of the project to download the proper version of the Bukkit API, and run compile.sh in each plugin folder to do the obvious.
+
+To run a shell script on either Mac or Linux, open Terminal, cd to the project folder (type 'cd', drag and drop the folder to the Terminal window, press Enter), and run the following commands:
+
+find . -name \*.sh -print -exec chmod +x '{}' \;
+./setup.sh
+Divided/compile.sh
+
+This will output Divided.jar in the output directory if everything goes fine. If it does work, drop the file in the /plugins folder for Craftbukkit. Otherwise, Google the error, because you probably don't have Java installed or something.
+
+If you're on Windows (and have actually managed to use Git properly), then you probably know enough about Command Prompt or Cygwin to open the files and figure out how to do it yourself. I'm too lazy to switch over and write the Batch scripts myself.
